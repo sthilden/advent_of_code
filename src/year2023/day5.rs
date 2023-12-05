@@ -36,6 +36,63 @@ fn map(source: u64, map: &Vec<(u64, u64, u64)>) -> u64 {
     source
 }
 
+fn map2(sources: &Vec<(u64, u64)>, map: &Vec<(u64, u64, u64)>) -> Vec<(u64, u64)> {
+    // Each map entry has the following values:
+    // (destination_range_start, source_range_start, range_length)
+
+    let mut destinations: Vec<(u64, u64)> = Vec::new();
+    let mut sources_left = sources.clone();
+
+    while let Some((source_first, source_length)) = sources_left.pop() {
+        let source_last = source_first + source_length - 1;
+        let mut found = false;
+        for (map_dest_first, map_source_first, map_length) in map {
+            let map_dest_last = *map_dest_first + map_length - 1;
+            let map_source_last = map_source_first + map_length - 1;
+            if *map_source_first <= source_first && source_last <= map_source_last {
+                // Whole source range contained in this mapping. Can map to single destination range.
+                destinations.push((
+                    map_dest_first + (source_first - *map_source_first),
+                    source_length,
+                ));
+                found = true;
+                break;
+            } else if *map_source_first <= source_first
+                && source_first <= map_source_last
+                && map_source_last < source_last
+            {
+                // First part of source range contained in this mapping, but not whole range.
+                let dest_len = map_source_last - source_first + 1;
+                destinations.push((map_dest_last - dest_len + 1, dest_len));
+                sources_left.push((
+                    map_source_last + 1,
+                    source_length - (map_source_last - source_first + 1),
+                ));
+                found = true;
+                break;
+            } else if source_first < *map_source_first
+                && *map_source_first <= source_last
+                && source_last <= map_source_last
+            {
+                // Last part of source range contained in this mapping, but not whole range.
+                destinations.push((*map_dest_first, source_last - *map_source_first + 1));
+                sources_left.push((
+                    source_first,
+                    source_length - (source_last - *map_source_first + 1),
+                ));
+                found = true;
+                break;
+            }
+        }
+        if !found {
+            // Whole source range is outside of any mapping range. Maps to itself.
+            destinations.push((source_first, source_length));
+        }
+    }
+
+    destinations
+}
+
 pub fn problem1() {
     println!("problem 1");
 
@@ -136,23 +193,21 @@ pub fn problem2() {
         }
     });
 
-    // NOTE: This is the naive and VERY slow approach, using double for loop.
-    // This would be done much better if the map function could be smarter and
-    // handle a range of source values.
-
     let mut min_location = None;
-    for (seed_start, seed_count) in seeds {
-        for seed in seed_start..seed_start + seed_count + 1 {
-            let soil = map(seed, maps.get(&MapType::SeedToSoil).unwrap());
-            let fert = map(soil, maps.get(&MapType::SoilToFertilizer).unwrap());
-            let watr = map(fert, maps.get(&MapType::FertilizerToWater).unwrap());
-            let ligh = map(watr, maps.get(&MapType::WaterToLight).unwrap());
-            let temp = map(ligh, maps.get(&MapType::LightToTemperature).unwrap());
-            let humi = map(temp, maps.get(&MapType::TemperatureToHumidity).unwrap());
-            let loca = map(humi, maps.get(&MapType::HumidityToLocation).unwrap());
+    for seed_range in seeds {
+        let seed = vec![seed_range];
 
-            if min_location.is_none() || loca < min_location.unwrap() {
-                min_location = Some(loca);
+        let soil = map2(&seed, maps.get(&MapType::SeedToSoil).unwrap());
+        let fert = map2(&soil, maps.get(&MapType::SoilToFertilizer).unwrap());
+        let watr = map2(&fert, maps.get(&MapType::FertilizerToWater).unwrap());
+        let ligh = map2(&watr, maps.get(&MapType::WaterToLight).unwrap());
+        let temp = map2(&ligh, maps.get(&MapType::LightToTemperature).unwrap());
+        let humi = map2(&temp, maps.get(&MapType::TemperatureToHumidity).unwrap());
+        let loca = map2(&humi, maps.get(&MapType::HumidityToLocation).unwrap());
+
+        for (location_start, _) in loca {
+            if min_location.is_none() || location_start < min_location.unwrap() {
+                min_location = Some(location_start);
             }
         }
     }
