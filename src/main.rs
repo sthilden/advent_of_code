@@ -2,5 +2,5 @@ mod year2023;
 use crate::year2023::*;
 
 fn main() {
-    day5::problem2();
+    day6::problem2();
 }
