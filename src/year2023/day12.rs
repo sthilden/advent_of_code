@@ -78,6 +78,22 @@ fn solve(list: &Vec<Spring>, groups: &Vec<usize>) -> usize {
     solutions
 }
 
+// fn solve2(list: &Vec<Spring>, groups: &Vec<usize>) -> usize {
+// {
+//     // ?#?#?#?#?#?#?#? 1,3,1,6
+//     //  | [-] | [----]
+
+//     // Setup groups in left most positions
+//     let mut group_start_inx: Vec<usize> = Vec::new();
+//     let mut group_inx = 0;
+//     for group_len in groups {
+//         group_start_inx.push(group_inx);
+//         group_inx += group_len + 1;
+//     }
+
+//     0
+// }
+
 pub fn problem1() {
     println!("problem 1");
 
