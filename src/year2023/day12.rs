@@ -153,7 +153,7 @@ pub fn problem2() {
 
         let mut list_unfolded = list.clone();
         let mut groups_unfolded = groups.clone();
-        for _ in 0..4 {
+        for _ in 0..5 {
             list_unfolded.push(Spring::Unknown);
             list_unfolded.append(&mut list.clone());
             groups_unfolded.append(&mut groups.clone());
